@@ -80,4 +80,24 @@ module.exports = function(opts, callback) {
 
     return callback();
   });
+
+  var gracefulShutdown = function() {
+    console.log("Received kill signal, attempting to shutdown gracefully...");
+    server.close(function() {
+      console.log("Closed out remaining connections. Quitting.");
+      process.exit(0);
+    });
+    
+     // if after
+     setTimeout(function() {
+         console.error("Could not close connections after 10 seconds, forcibly shutting down");
+         process.exit(1);
+    }, 10 * 1000);
+  }
+
+  // listen for TERM signal .e.g. kill
+  process.on('SIGTERM', gracefulShutdown);
+
+  // listen for INT signal e.g. Ctrl-C
+  process.on('SIGINT', gracefulShutdown);
 };
